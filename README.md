@@ -1,3 +1,4 @@
+```markdown
 # Local Multimodal Video Note Maker
 
 An intelligent, fully local, GPU-accelerated pipeline designed to extract rich multimodal notes from long-form video content. It utilizes **OpenAI Whisper** for high-fidelity audio transcription and **Qwen2.5-VL-7B** for dense visual frame analysis, intelligently stitching them together.
@@ -22,14 +23,20 @@ Ensure your virtual environment is active, then install the dependencies:
 pip install -r requirements.txt
 ```
 
-## How to Run
+## Workflow: How to Use This
 
-To run the pipeline on a specific video file:
+To process your own videos, follow this simple workflow:
+
+1. **Add your videos:** Drag and drop your `.mp4` video files into the `datasets/` folder.
+2. **Run the script:** Use the commands below to process them. Temporary audio slices will safely process behind the scenes in the `cache/` folder.
+3. **Get your notes:** Once finished, your synchronized notes will automatically appear in the `outputs/` folder!
+
+### To run on a single video:
 ```powershell
 python -m src.video_to_text.cli --video "datasets/YourVideo.mp4"
 ```
 
-To run the pipeline automatically on *every* video in your `datasets/` folder (PowerShell):
+### To run on EVERY video in the datasets folder automatically:
 ```powershell
 Get-ChildItem -Path "datasets" -Filter "*.mp4" | ForEach-Object { python -m src.video_to_text.cli --video $_.FullName }
 ```
@@ -45,3 +52,4 @@ You can tweak the pipeline's behavior by modifying `src/video_to_text/config/set
 Generated notes and transcripts are saved as `.json` files in the `outputs/` directory automatically named after your source video.
 
 > **Pro Tip for Summaries:** Because this pipeline losslessly merges the exact spoken audio with dense visual descriptions, the resulting JSON is incredibly information-rich. You can feed this output `.json` file directly into advanced Large Language Models like **Claude 3.5 Sonnet** or **OpenAI GPT-4o** to instantly generate perfectly structured executive summaries, action items, or study guides with maximum context.
+```

@@ -6,13 +6,20 @@ ENV/
 env.bak/
 venv.bak/
 
-# Project Specific
+# Datasets: Ignore massive video files, but keep the folder
 datasets/*.mp4
 datasets/*.mkv
 datasets/*.avi
 datasets/*.mov
-cache/
+!datasets/.gitkeep
+
+# Cache: Ignore all temporary audio chunks, but keep the folder
+cache/*
+!cache/.gitkeep
+
+# Outputs: Ignore generated JSONs, but keep the folder
 outputs/*.json
+!outputs/.gitkeep
 
 # Python
 __pycache__/
@@ -29,3 +36,4 @@ __pycache__/
 # OS generated files
 .DS_Store
 Thumbs.db
+
