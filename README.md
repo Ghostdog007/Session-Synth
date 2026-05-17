@@ -43,3 +43,5 @@ You can tweak the pipeline's behavior by modifying `src/video_to_text/config/set
 
 ## Outputs
 Generated notes and transcripts are saved as `.json` files in the `outputs/` directory automatically named after your source video.
+
+> **Pro Tip for Summaries:** Because this pipeline losslessly merges the exact spoken audio with dense visual descriptions, the resulting JSON is incredibly information-rich. You can feed this output `.json` file directly into advanced Large Language Models like **Claude 3.5 Sonnet** or **OpenAI GPT-4o** to instantly generate perfectly structured executive summaries, action items, or study guides with maximum context.
