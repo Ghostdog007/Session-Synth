@@ -2,6 +2,21 @@
 
 Welcome to your fully local, GPU-accelerated video to text pipeline! This document serves as a complete walkthrough of what we built, how it works, and how to use it.
 
+## Hugging Face Token Requirement
+
+This pipeline performs inference locally on your own device (GPU/CPU), but it still requires access to model files hosted on Hugging Face:
+- `openai/whisper-small`
+- `Qwen/Qwen2.5-VL-7B-Instruct`
+
+So, a Hugging Face token is required for authentication/download reliability. The token does not move inference to the cloud. Model execution remains local.
+
+Add token in `.env` at project root:
+
+```env
+HUGGING_FACE_HUB_TOKEN=hf_your_token_here
+HF_TOKEN=hf_your_token_here
+```
+
 ## 🌟 Key Accomplishments
 
 We successfully transformed a cloud API-dependent scaffold into a **100% local, VRAM-efficient multimodal pipeline** capable of running on an 8GB RTX 4060 GPU without crashing.

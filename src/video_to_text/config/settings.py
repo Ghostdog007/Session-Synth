@@ -36,7 +36,7 @@ class PipelineSettings:
     cache_dir: Path = field(default_factory=lambda: Path("cache"))
     output_dir: Path = field(default_factory=lambda: Path("outputs"))
     video_model: ModelSettings = field(default_factory=ModelSettings)
-    asr_model_id: str = "openai/whisper-small"
+    asr_model_id: str = "openai/whisper-large-v3-turbo"
     diarization_model_id: str = "pyannote/speaker-diarization-3.1"
 
     @classmethod

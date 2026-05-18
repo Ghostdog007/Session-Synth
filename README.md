@@ -15,12 +15,26 @@ Designed specifically to run massive models sequentially on an **8GB VRAM GPU (R
 1. **Python 3.10+**
 2. **FFmpeg**: Required for rapid audio extraction and lossless chunk slicing.
    * On Windows: `winget install ffmpeg` (The script will automatically find it even without restarting the terminal).
+3. **Hugging Face Token (Required)**:
+   * This project downloads and loads `openai/whisper-small` and `Qwen/Qwen2.5-VL-7B-Instruct` from Hugging Face.
+   * Inference still runs locally on your machine (your own GPU/CPU). The token is used for model access/authentication and to reduce rate-limit issues.
+   * Add token in a local `.env` file:
+
+```env
+HUGGING_FACE_HUB_TOKEN=hf_your_token_here
+HF_TOKEN=hf_your_token_here
+```
 
 ## Installation
 
 Ensure your virtual environment is active, then install the dependencies:
 ```bash
 pip install -r requirements.txt
+```
+
+If you do not already have a `.env`, create one:
+```powershell
+Copy-Item .env.example .env
 ```
 
 ## Workflow: How to Use This
