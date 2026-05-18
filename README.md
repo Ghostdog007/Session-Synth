@@ -86,5 +86,28 @@ You can tweak the pipeline's behavior by modifying `src/video_to_text/config/set
 ## Outputs
 Generated notes and transcripts are saved as `.json` files in the `outputs/` directory automatically named after your source video.
 
+## Improved JSON Structure (Trust + Semantics)
+
+The output JSON now includes a richer, research-grade structure designed for downstream tutoring, RAG, and note-generation systems:
+
+- `transcript_segments[]` now includes per-segment trust metadata:
+  - `confidence`: heuristic segment quality score (0.0-1.0)
+  - `low_trust`: whether the segment is considered noisy and filtered from trusted synthesis
+  - `risk`: `low`, `medium`, or `high`
+- `cleaned_transcript`: transcript after normalization, repetition suppression, and overlap cleanup
+- `trusted_transcript`: filtered transcript that excludes low-trust segments by default
+- `cleanup_flags`: records cleanup actions such as:
+  - `dropped_invalid_timestamp_segment`
+  - `collapsed_repeated_phrase`
+  - `collapsed_fuzzy_repetition`
+  - `trimmed_cross_chunk_overlap`
+  - `trimmed_cross_chunk_overlap_fuzzy`
+  - `dropped_low_trust_segment`
+- `hallucination_risk`: chunk-level noise risk (`low`, `medium`, `high`)
+- `semantic_tags`: pedagogical labels such as `definition`, `formula`, `example`, `intuition`, `quiz`, `transition`
+- `concept_transitions`: concept movement markers (example: `logistic regression->softmax regression:generalization`)
+
+`merged_notes` now prefers `trusted_transcript`, so repeated ASR corruption is less likely to pollute final summaries.
+
 > **Pro Tip for Summaries:** Because this pipeline losslessly merges the exact spoken audio with dense visual descriptions, the resulting JSON is incredibly information-rich. You can feed this output `.json` file directly into advanced Large Language Models like **Claude 3.5 Sonnet** or **OpenAI GPT-4o** to instantly generate perfectly structured executive summaries, action items, or study guides with maximum context.
 ```

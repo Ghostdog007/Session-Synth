@@ -102,3 +102,27 @@ Open `src/video_to_text/config/settings.py` to tweak the pipeline:
 * `chunk_seconds`: Change the boundaries of the grid (default: 60 seconds).
 * `max_frames_per_chunk`: Increase if you have more VRAM, decrease if you hit OOMs.
 
+## Improved Output JSON Schema
+
+The pipeline now emits a structured JSON designed for educational reasoning and safer downstream automation.
+
+### Per Segment (`transcript_segments[]`)
+- `start_seconds`, `end_seconds`, `text`, `speaker`
+- `confidence`: heuristic trust score in `[0.0, 1.0]`
+- `low_trust`: whether the segment is considered noisy
+- `risk`: `low`, `medium`, or `high`
+
+### Per Chunk
+- `cleaned_transcript`: normalized transcript after repetition/overlap cleanup
+- `trusted_transcript`: filtered transcript that excludes low-trust lines
+- `cleanup_flags`: records what cleanup operations were applied
+- `hallucination_risk`: chunk-level ASR noise risk
+- `semantic_tags`: pedagogical role labels (`definition`, `formula`, `example`, `intuition`, `quiz`, `transition`)
+- `concept_transitions`: concept shift markers (example: `logistic regression->softmax regression:generalization`)
+- `merged_notes`: final multimodal note (trusted transcript + visual grounding)
+
+### Why this matters
+- Reduces repeated ASR corruption propagation into summaries.
+- Makes chunks machine-actionable for RAG, tutoring, flashcards, and concept maps.
+- Preserves instructional flow as concept transitions, not just raw timeline text.
+
