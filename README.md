@@ -1,14 +1,32 @@
-```markdown
 # Local Multimodal Video Note Maker
 
 An intelligent, fully local, GPU-accelerated pipeline designed to extract rich multimodal notes from long-form video content. It utilizes **OpenAI Whisper** for high-fidelity audio transcription and **Qwen2.5-VL-7B** for dense visual frame analysis, intelligently stitching them together.
 
 ## System Architecture
 
-Designed specifically to run massive models sequentially on an **8GB VRAM GPU (RTX 4060)** without crashing:
-- **Audio Phase**: Extracts audio losslessly via FFmpeg. Uses `openai/whisper-small` in `float16` to transcribe the entire audio track exactly once.
-- **Vision Phase**: Unloads Whisper, loads `Qwen2.5-VL-7B-Instruct` in `4-bit (nf4) quantization`. It extracts 4 evenly spaced frames for every 60-second chunk, resizes them to `384x384` for memory efficiency, and generates a visual summary.
+Designed to dynamically scale based on your available hardware:
+
+**High-End (NVIDIA GPUs)**
+- Perfect for an **8GB VRAM GPU (RTX 4060)**.
+- **Audio Phase**: Extracts audio losslessly via FFmpeg. Uses `openai/whisper-large-v3-turbo` in `float16` to transcribe the entire audio track exactly once.
+- **Vision Phase**: Unloads Whisper, loads `Qwen2.5-VL-7B-Instruct` in `4-bit (nf4) quantization` using `bitsandbytes`. It extracts 4 evenly spaced frames for every 60-second chunk, resizes them to `384x384` for memory efficiency, and generates a visual summary.
 - **The Brain (Merger)**: Seamlessly merges the exact spoken text with the generated visual notes using precise 60-second time boundaries.
+
+**Hardware-Agnostic Fallback (CPU / iGPU / Mac)**
+- Automatically detects if an NVIDIA GPU is missing and seamlessly pivots to optimized CPU logic.
+- **Audio Phase**: Switches to `faster-whisper` (CTranslate2 backend) to deliver up to 4x faster CPU transcriptions.
+- **Vision Phase**: Skips `bitsandbytes` (which breaks on CPUs) and uses `llama-cpp-python` to load highly-compressed `.gguf` Vision models directly into system RAM.
+
+### Minimum Hardware Requirements
+- **NVIDIA Route**: 8GB VRAM GPU.
+- **CPU Route**: Minimum 8GB System RAM.
+  - *Safety Feature:* The pipeline monitors system RAM using `psutil`. If it detects a system with 8.5GB RAM or less, it automatically downgrades the Vision model from the 7B version to a much lighter 3B parameter model (`Qwen2.5-VL-3B-Instruct.gguf`) to completely prevent Out-Of-Memory crashes.
+
+### Estimated CPU vs. GPU Time Tradeoffs
+Running inference on a CPU is inherently slower than a dedicated GPU.
+- **Audio (Whisper)**: Thanks to `faster-whisper`, CPU audio processing is highly optimized. Expect it to take ~2x to 3x longer than an RTX 4060.
+- **Vision (Qwen-VL)**: Vision models are extremely compute-heavy. While the RTX 4060 might process a visual chunk in 5 seconds, a standard laptop CPU might take 30-60 seconds per chunk.
+- **Total Pipeline**: Expect the process to take **5x to 10x longer** on a CPU compared to a dedicated NVIDIA GPU. However, the output quality remains identical!
 
 ## Prerequisites
 

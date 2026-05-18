@@ -1,6 +1,7 @@
 import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 from ..config.settings import PipelineSettings
+from .device import get_device_type, empty_cache
 
 # Cache for audio models
 _ASR_MODEL_CACHE = {}
@@ -15,9 +16,19 @@ def load_asr_pipeline(settings: PipelineSettings):
     # Clear other models before loading
     unload_asr_pipeline()
     
-    print(f"Loading ASR model {model_id} onto GPU...")
+    device_type = get_device_type()
     
-    torch_dtype = torch.float16
+    if device_type == "cpu":
+        from faster_whisper import WhisperModel
+        print(f"Loading faster-whisper model {model_id} for CPU...")
+        fw_model_id = model_id.replace("openai/whisper-", "") if "openai/whisper-" in model_id else model_id
+        model = WhisperModel(fw_model_id, device="cpu", compute_type="int8")
+        _ASR_MODEL_CACHE[model_id] = ("faster_whisper", model)
+        return _ASR_MODEL_CACHE[model_id]
+        
+    print(f"Loading ASR model {model_id} onto {device_type}...")
+    
+    torch_dtype = torch.float16 if device_type != "cpu" else torch.float32
     model = AutoModelForSpeechSeq2Seq.from_pretrained(
         model_id, 
         torch_dtype=torch_dtype, 
@@ -34,11 +45,11 @@ def load_asr_pipeline(settings: PipelineSettings):
         tokenizer=processor.tokenizer,
         feature_extractor=processor.feature_extractor,
         dtype=torch_dtype,
-        device=0, # Force GPU
+        device=0 if device_type == "cuda" else (-1 if device_type == "cpu" else device_type),
     )
     
-    _ASR_MODEL_CACHE[model_id] = pipe
-    return pipe
+    _ASR_MODEL_CACHE[model_id] = ("transformers", pipe)
+    return _ASR_MODEL_CACHE[model_id]
 
 def unload_asr_pipeline():
     """Clear ASR model from GPU memory."""
@@ -46,8 +57,4 @@ def unload_asr_pipeline():
     if _ASR_MODEL_CACHE:
         print("Unloading ASR model from GPU...")
         _ASR_MODEL_CACHE.clear()
-        import gc
-        gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-            torch.cuda.ipc_collect()
+        empty_cache()

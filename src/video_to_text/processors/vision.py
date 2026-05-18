@@ -43,58 +43,92 @@ def get_multimodal_description(frames: list[Image.Image], settings: PipelineSett
     """Run local GPU inference for multimodal description."""
     import torch
     try:
-        model, processor = load_vision_model(settings)
+        engine, *engine_data = load_vision_model(settings)
         
-        # Prepare the prompt for Qwen2.5-VL
-        content = []
-        for img in frames:
-            content.append({"type": "image", "image": img})
-        
-        content.append({
-            "type": "text", 
-            "text": "Describe what is happening in this sequence of video frames. Focus on: what is shown on screen, any text visible, and the main activity. Be concise."
-        })
-        
-        messages = [
-            {
-                "role": "user",
-                "content": content,
-            }
-        ]
-        
-        # Preparation for inference
-        text = processor.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
-        
-        from qwen_vl_utils import process_vision_info
-        image_inputs, video_inputs = process_vision_info(messages)
-        
-        inputs = processor(
-            text=[text],
-            images=image_inputs,
-            videos=video_inputs,
-            padding=True,
-            return_tensors="pt",
-        )
-        inputs = inputs.to(model.device)
-        
-        # Generate with memory-efficient settings
-        with torch.amp.autocast('cuda'):
-            generated_ids = model.generate(**inputs, max_new_tokens=200)
-        
-        generated_ids_trimmed = [
-            out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
-        ]
-        output_text = processor.batch_decode(
-            generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
-        )
-        
-        # Free intermediate tensors
-        del inputs, generated_ids, generated_ids_trimmed
-        torch.cuda.empty_cache()
-        
-        return output_text[0]
+        if engine == "transformers":
+            model, processor = engine_data
+            
+            # Prepare the prompt for Qwen2.5-VL
+            content = []
+            for img in frames:
+                content.append({"type": "image", "image": img})
+            
+            content.append({
+                "type": "text", 
+                "text": "Describe what is happening in this sequence of video frames. Focus on: what is shown on screen, any text visible, and the main activity. Be concise."
+            })
+            
+            messages = [
+                {
+                    "role": "user",
+                    "content": content,
+                }
+            ]
+            
+            # Preparation for inference
+            text = processor.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=True
+            )
+            
+            from qwen_vl_utils import process_vision_info
+            image_inputs, video_inputs = process_vision_info(messages)
+            
+            inputs = processor(
+                text=[text],
+                images=image_inputs,
+                videos=video_inputs,
+                padding=True,
+                return_tensors="pt",
+            )
+            inputs = inputs.to(model.device)
+            
+            # Generate with memory-efficient settings
+            with torch.amp.autocast('cuda'):
+                generated_ids = model.generate(**inputs, max_new_tokens=200)
+            
+            generated_ids_trimmed = [
+                out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+            ]
+            output_text = processor.batch_decode(
+                generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
+            )
+            
+            # Free intermediate tensors
+            del inputs, generated_ids, generated_ids_trimmed
+            from .device import empty_cache
+            empty_cache()
+            
+            return output_text[0]
+            
+        elif engine == "llama_cpp":
+            model = engine_data[0]
+            
+            def image_to_base64_data_uri(img):
+                buffered = io.BytesIO()
+                img.save(buffered, format="JPEG")
+                img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                return f"data:image/jpeg;base64,{img_str}"
+            
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Describe what is happening in this sequence of video frames. Focus on: what is shown on screen, any text visible, and the main activity. Be concise."}
+                    ]
+                }
+            ]
+            
+            for img in frames:
+                messages[0]["content"].append({
+                    "type": "image_url",
+                    "image_url": {"url": image_to_base64_data_uri(img)}
+                })
+            
+            response = model.create_chat_completion(
+                messages=messages,
+                max_tokens=200
+            )
+            return response["choices"][0]["message"]["content"]
         
     except RuntimeError as e:
         if "out of memory" in str(e):
