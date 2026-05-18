@@ -95,7 +95,7 @@ def get_multimodal_description(frames: list[Image.Image], settings: PipelineSett
             
             # Free intermediate tensors
             del inputs, generated_ids, generated_ids_trimmed
-            from .device import empty_cache
+            from ..models.device import empty_cache
             empty_cache()
             
             return output_text[0]

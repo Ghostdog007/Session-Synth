@@ -57,6 +57,8 @@ class ChunkResult:
     transcript_segments: list[TranscriptSegment] = field(default_factory=list)
     speaker_turns: list[SpeakerTurn] = field(default_factory=list)
     visual_notes: list[VisualNote] = field(default_factory=list)
+    cleaned_transcript: str = ""
+    cleanup_flags: list[str] = field(default_factory=list)
     merged_notes: str = ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -65,6 +67,8 @@ class ChunkResult:
             "transcript_segments": [segment.to_dict() for segment in self.transcript_segments],
             "speaker_turns": [turn.to_dict() for turn in self.speaker_turns],
             "visual_notes": [note.to_dict() for note in self.visual_notes],
+            "cleaned_transcript": self.cleaned_transcript,
+            "cleanup_flags": self.cleanup_flags,
             "merged_notes": self.merged_notes,
         }
 

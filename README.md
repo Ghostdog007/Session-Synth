@@ -42,6 +42,9 @@ Running inference on a CPU is inherently slower than a dedicated GPU.
 HUGGING_FACE_HUB_TOKEN=hf_your_token_here
 HF_TOKEN=hf_your_token_here
 ```
+4. **Diarization dependency is optional**:
+   * `pyannote.audio` is intentionally not installed by default to avoid TorchCodec/DLL issues on Windows.
+   * The current pipeline does not require diarization for normal video-to-notes runs.
 
 ## Installation
 

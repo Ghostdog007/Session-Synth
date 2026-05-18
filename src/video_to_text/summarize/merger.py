@@ -4,7 +4,7 @@ from ..types import ChunkResult, VideoSummary
 
 
 def merge_chunk_results(chunk_result: ChunkResult) -> str:
-    transcript_text = " ".join(segment.text for segment in chunk_result.transcript_segments)
+    transcript_text = chunk_result.cleaned_transcript or " ".join(segment.text for segment in chunk_result.transcript_segments)
     speaker_text = " ".join(f"{turn.speaker}: {turn.text}" for turn in chunk_result.speaker_turns)
     visual_text = " ".join(note.text for note in chunk_result.visual_notes)
     parts = [part for part in [transcript_text, speaker_text, visual_text] if part]

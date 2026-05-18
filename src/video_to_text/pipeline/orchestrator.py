@@ -6,6 +6,7 @@ from ..processors.audio import attach_audio_segments, extract_audio, get_chunked
 from ..models.audio_loader import unload_asr_pipeline
 from ..models.loader import unload_vision_model
 from ..processors.chunking import plan_chunks
+from ..processors.text_cleanup import clean_transcripts
 from ..processors.vision import get_real_visual_notes
 from ..summarize.merger import merge_chunk_results, merge_summary
 from ..types import ChunkResult, PipelineResult
@@ -43,6 +44,9 @@ class VideoToTextPipeline:
             chunk_result = ChunkResult(chunk=chunk)
             chunk_result = attach_audio_segments(chunk_result, chunk, all_segments)
             chunk_results.append(chunk_result)
+
+        # Cleanup pass: remove corrupt segments and reduce repeated transcript artifacts.
+        clean_transcripts(chunk_results)
             
         if not self.settings.visible_audio_progress:
             print("Audio transcription complete.")

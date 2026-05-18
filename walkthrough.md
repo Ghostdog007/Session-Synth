@@ -1,4 +1,4 @@
-# Multimodal Video Note Maker Walkthrough
+﻿# Multimodal Video Note Maker Walkthrough
 
 Welcome to your fully local, GPU-accelerated video to text pipeline! This document serves as a complete walkthrough of what we built, how it works, and how to use it.
 
@@ -17,7 +17,11 @@ HUGGING_FACE_HUB_TOKEN=hf_your_token_here
 HF_TOKEN=hf_your_token_here
 ```
 
-## 🌟 Key Accomplishments
+## Optional Diarization Note
+
+`pyannote.audio` is not part of the default install in this project. This is intentional to avoid `torchcodec`/Windows DLL instability. The main video-to-notes pipeline works without diarization.
+
+## ðŸŒŸ Key Accomplishments
 
 We successfully transformed a cloud API-dependent scaffold into a **100% local, universally compatible multimodal pipeline**.
 - **GPU Path**: Capable of running massive models on an 8GB RTX 4060 GPU without crashing using 4-bit `nf4` quantization.
@@ -27,7 +31,7 @@ We successfully transformed a cloud API-dependent scaffold into a **100% local, 
 > **Dynamic Low-RAM Protection**
 > The pipeline automatically monitors system RAM. If it detects a system with 8.5GB of RAM or less, it will safely downgrade the Vision model to a 3B parameter GGUF model (~2.2GB footprint) to completely prevent Out-Of-Memory crashes.
 
-## 🏗️ System Architecture
+## ðŸ—ï¸ System Architecture
 
 ```mermaid
 graph TD
@@ -79,7 +83,7 @@ The orchestrator takes the spoken text and visual descriptions and merges them s
 > [!WARNING]
 > Because Whisper and Qwen-VL run sequentially, they do not inherently share context. If someone points to a screen and says "Look at this," the transcript will capture the words, and the vision model will capture the pointing action, but they are not synthesized by a secondary LLM logic yet.
 
-## 🚀 How to Run
+## ðŸš€ How to Run
 
 ### Single Video Execution
 ```powershell
@@ -92,8 +96,9 @@ To process every video sitting in the `datasets/` folder sequentially:
 Get-ChildItem -Path "datasets" -Filter "*.mp4" | ForEach-Object { python -m src.video_to_text.cli --video $_.FullName }
 ```
 
-## ⚙️ Configuration
+## âš™ï¸ Configuration
 Open `src/video_to_text/config/settings.py` to tweak the pipeline:
 * `visible_audio_progress`: Set to `True` to see an iterative progress bar during Phase 1 (slower), or `False` to use Whisper's internal batched pipeline (faster).
 * `chunk_seconds`: Change the boundaries of the grid (default: 60 seconds).
 * `max_frames_per_chunk`: Increase if you have more VRAM, decrease if you hit OOMs.
+
