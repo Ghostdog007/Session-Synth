@@ -24,6 +24,9 @@ class TranscriptSegment:
     end_seconds: float
     speaker: str | None
     text: str
+    confidence: float | None = None
+    low_trust: bool = False
+    risk: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -58,7 +61,11 @@ class ChunkResult:
     speaker_turns: list[SpeakerTurn] = field(default_factory=list)
     visual_notes: list[VisualNote] = field(default_factory=list)
     cleaned_transcript: str = ""
+    trusted_transcript: str = ""
     cleanup_flags: list[str] = field(default_factory=list)
+    hallucination_risk: str = "low"
+    semantic_tags: list[str] = field(default_factory=list)
+    concept_transitions: list[str] = field(default_factory=list)
     merged_notes: str = ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -68,7 +75,11 @@ class ChunkResult:
             "speaker_turns": [turn.to_dict() for turn in self.speaker_turns],
             "visual_notes": [note.to_dict() for note in self.visual_notes],
             "cleaned_transcript": self.cleaned_transcript,
+            "trusted_transcript": self.trusted_transcript,
             "cleanup_flags": self.cleanup_flags,
+            "hallucination_risk": self.hallucination_risk,
+            "semantic_tags": self.semantic_tags,
+            "concept_transitions": self.concept_transitions,
             "merged_notes": self.merged_notes,
         }
 

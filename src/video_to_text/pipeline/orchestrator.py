@@ -6,6 +6,7 @@ from ..processors.audio import attach_audio_segments, extract_audio, get_chunked
 from ..models.audio_loader import unload_asr_pipeline
 from ..models.loader import unload_vision_model
 from ..processors.chunking import plan_chunks
+from ..processors.semantic import annotate_semantics
 from ..processors.text_cleanup import clean_transcripts
 from ..processors.vision import get_real_visual_notes
 from ..summarize.merger import merge_chunk_results, merge_summary
@@ -61,6 +62,9 @@ class VideoToTextPipeline:
             
             # 3. Merge results for this chunk
             chunk_result.merged_notes = merge_chunk_results(chunk_result)
+
+        # 4. Semantic pass: add pedagogy-aware chunk tags and transitions.
+        annotate_semantics(chunk_results)
 
         print("\n--- Finalizing Summary ---")
         summary = merge_summary(chunk_results)
